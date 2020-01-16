@@ -92,14 +92,18 @@ optStruct <- R6Class("optStruct",
                            total.cost <- sum(self$cost.vector[applied.strategies])
                            # Add cost to cost vector
                            strategy.name <- paste(input.strategy.names, collapse=" + ")
-                           self$cost.vector <- c(self$cost.vector, total.cost)
-                           names(self$cost.vector)[length(self$cost.vector)] <- strategy.name
-                           # Add to benefits matrix - new species benefit vector is the logical OR of the benefit vectors of each input strategy
-                           old.benefits <- self$B[input.strategy.names,]
-                           new.row <- apply(old.benefits, 2, max) # take the max (1) of each column - same as (x['S2',] | x['S1',] )*1 for two rows
-                           self$B <- rbind(self$B, new.row)
-                           l <- length(rownames(self$B))
-                           rownames(self$B)[l] <- strategy.name
+
+                           #AC edit: IF statement to prevent duplicate combinations strategies from being added
+                           if(!(strategy.name %in% names(self$cost.vector))) {
+                             self$cost.vector <- c(self$cost.vector, total.cost)
+                             names(self$cost.vector)[length(self$cost.vector)] <- strategy.name
+                             # Add to benefits matrix - new species benefit vector is the logical OR of the benefit vectors of each input strategy
+                             old.benefits <- self$B[input.strategy.names,]
+                             new.row <- apply(old.benefits, 2, max) # take the max (1) of each column - same as (x['S2',] | x['S1',] )*1 for two rows
+                             self$B <- rbind(self$B, new.row)
+                             l <- length(rownames(self$B))
+                             rownames(self$B)[l] <- strategy.name
+                           }
 
                            # Done
                            invisible(self)
