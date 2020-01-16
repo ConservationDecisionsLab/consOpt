@@ -66,7 +66,7 @@ combination <- R6Class("combination",
 parse.combination.matrix <- function(combo.mat){
   # Find combination strategies by identifying columns containing nontrivial combinations
   strategy.combination.size <- apply(combo.mat, 2, function(x) length(which(x != '')))
-  combinations.idx <- which(strategy.combination.size > 1 & strategy.combination.size < length(strategy.combination.size))
+  combinations.idx <- which(strategy.combination.size > 1 & strategy.combination.size < max(strategy.combination.size))
   combinations <- combo.mat[,combinations.idx]
 
   # Find strategies that are implemented by several combination strategies
