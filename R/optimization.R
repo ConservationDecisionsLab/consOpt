@@ -425,6 +425,45 @@ do.optimize.range <- function(B, cost.vector, budgets = NULL, thresholds = c(50.
   # Collect results of the optimization here
   out <- data.frame()
 
+  # AC edits to add constraints for new combos
+  # a bit clunky as it duplicates code from below and from this.opt$add.compound()],
+  # but wanted to do this outside the 'for (thresholds)' loop as it only needs to be done once
+  # Could eventually be turned into a function in combinations.R, or
+  # incorporated into get.constraint.list (but will need to duplicate code to check overlaps)
+  if (!is.null(combo.constraints)){
+    c <- length(combo.constraints)
+
+    if (!is.null(compound.strategies)){
+      compounds <- compound.strategies$get.combos()
+
+      strat.name.list <- character(0)
+      for(i in 1:length(compounds)){
+        input <-compounds[[i]]$input
+        output <- compounds[[i]]$output
+
+        input.strategy.names <- unlist(input, use.names = F)
+        combined.strategy.names <- unlist(output, use.names = F)
+        new.constraint <- union(union(combined.strategy.names, combined.strategy.names), input.strategy.names)
+        strat.name <- paste(input.strategy.names, collapse = " + ")
+
+        if (i == 1) {
+          strat.name.list <- strat.name
+          c <- c + 1
+          combo.constraints[[c]] <- constraint$new(strat.name, new.constraint)
+        } else {
+          if (i > 1) {
+            if (!strat.name %in% strat.name.list) { #only add if not already included (i.e., if not a duplicate)
+              strat.name.list <- c(strat.name.list, strat.name)
+              c <- c + 1
+              combo.constraints[[c]] <- constraint$new(strat.name, new.constraint)
+            }
+          }
+        }
+      }
+    }
+  }
+  # End AC edits
+
   for (threshold in thresholds) {
 
     # Initialize a new optimization run with an opStruct
